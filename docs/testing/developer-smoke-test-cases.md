@@ -227,4 +227,4 @@ After installation, the following files should exist on the host:
 `/var/lib/rancher/gmsa/<NAMESPACE>/ssl/ca/ca.crt`
 
 ## Expected Files For The Account Provider Post Uninstall
-All the previously listed files should no longer exist once the Account Provider chart is uninstalled from the cluster 
+All the previously listed files should no longer exist once the Account Provider chart is uninstalled from the cluster. The uninstallation process is handled via a [Helm Hook](https://helm.sh/docs/topics/charts_hooks/). If these resources remain on a Windows node post uninstall of the chart, then there is an issue with the Helm Hook logic which must be addressed. 
