@@ -75,6 +75,7 @@ metadata:
     "helm.sh/hook-delete-policy": hook-succeeded, before-hook-creation
     "helm.sh/hook-weight": "1"
 spec:
+  backoffLimit: 5
   template:
     metadata:
       name: {{ template "rancher-gmsa-account-provider.name" . }}-cleanup-job
@@ -100,7 +101,7 @@ spec:
       - name: cleanup-job
         image: {{ template "system_default_registry" . }}{{ .Values.global.kubectl.repository }}:{{ .Values.global.kubectl.tag }}
         imagePullPolicy: {{ .Values.global.kubectl.pullPolicy }}
-        command: ["kubectl", "rollout", "status", "daemonset", "{{ template "rancher-gmsa-account-provider.name" . }}-cleanup"]
+        command: ["kubectl", "rollout", "status", "daemonset", "{{ template "rancher-gmsa-account-provider.name" . }}-cleanup", "&&", "sleep", "60"]
         args: ["-n", "{{ template "rancher-gmsa-account-provider.namespace" . }}"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

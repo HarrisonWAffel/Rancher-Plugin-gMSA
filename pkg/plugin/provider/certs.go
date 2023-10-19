@@ -216,7 +216,7 @@ func UnImportCertificate(file certFile, namespace string) error {
 	certUtilArgs := []string{"-Command",
 		fmt.Sprintf("$(certutil %s)", file.hostFile), "-like", "\"Cert Hash(sha1):*\""}
 
-	o, err := exec.Command("powershell", certUtilArgs...).Output()
+	o, err := exec.Command("powershell", certUtilArgs...).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to obtain sha1 thumbPrint of cert in %s: %v", dynamicDir, err)
 	}

@@ -143,7 +143,36 @@ If cert-manager is not enabled, these Secrets are expected to be externally mana
 
 ### How do I identify whether the Account Provider is working as expected?
 
-TBD
+Upon installation of the Rancher gMSA Account Provider each Windows Node should have a hostProcess container running which will expose an HTTP/s API on `localhost`. This API server will listen on a port assigned to it by the host. To retrieve the port that the server is listening on, find and view the contents of the `port.txt` file located within the `/var/lib/rancher/gmsa/<ACCOUNT_PROVIDER_NAMESPACE>` directory. The API server will respond to GET requests made against the `/provider` endpoint.
+
+Before you can test the API endpoint, you must ensure that you have an impersonation account secret created within the account provider Kubernetes namespace. Once the secret has been created, you can use the following PowerShell command to test the API endpoint 
+
+```powershell
+Invoke-WebRequest -Method GET -UseBasicParsing -Uri https://localhost:<PORT>/provider -Certificate (Get-PfxCertificate tls.pfx)  -Headers @{'object' = 'IMEPERSONATION_ACCOUNT_SECRET_NAME'}
+```
+
+If everything has been configured properly, the command will produce an output similar to the following 
+
+```
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"username":"GMSAImpersonator","password":"p@ssw0rd","domainName":"haffel-ad.ad.com"}
+RawContent        : HTTP/1.1 200 OK
+                    Content-Length: 85
+                    Content-Type: application/json; charset=utf-8
+                    Date: Thu, 19 Oct 2023 18:50:19 GMT
+
+                    {"username":"GMSAImpersonator","password":"p@ssw0rd","domainName":"haffel-ad....
+Forms             :
+Headers           : {[Content-Length, 85], [Content-Type, application/json; charset=utf-8], [Date, Thu, 19 Oct 2023 18:50:19 GMT]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 85
+```
+
+If you receive a response like the above, then the account provider API is functioning as expected!
 
 ## License
 Copyright (c) 2023 [Rancher Labs, Inc.](http://rancher.com)
