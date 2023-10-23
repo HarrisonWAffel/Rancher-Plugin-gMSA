@@ -11,13 +11,24 @@ on:
       - 'Makefile'
 
 jobs:
-  build:
+  build-ubuntu:
     runs-on: ubuntu-latest
     env:
       CROSS: true
+      REPO:  ${{ vars.REPO }}
     container:
       image: rancher/dapper:v0.5.4
     steps:
       - uses: actions/checkout@v1
       - name: Run CI
         run: dapper ci
+  build-windows-on-2022:
+    runs-on: windows-2022
+    env:
+      REPO: ${{ vars.REPO }}
+    steps:
+      - uses: actions/checkout@v1
+      - name: Download golangci-lint
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.51.2
+      - name: Run CI
+        run: bash ./scripts/ci
