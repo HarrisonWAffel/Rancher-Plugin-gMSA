@@ -212,32 +212,58 @@ func RemoveCerts(namespace string) error {
 func UnImportCertificate(file certFile, namespace string) error {
 	dynamicDir := fmt.Sprintf("%s/%s", gmsaDirectory, namespace)
 
+	logrus.Infof("Attempting to remove certificate %s", file.hostFile)
+
 	// get cert thumbprint using certutil. Thumbprints are equal to the sha1 hash of the certificate
 	certUtilArgs := []string{"-Command",
-		fmt.Sprintf("$(certutil %s)", file.hostFile), "-like", "\"Cert Hash(sha1):*\""}
+		fmt.Sprintf("certutil %s", fmt.Sprintf("C:%s", file.hostFile)), "|", "Select-String", "-Pattern", "\"Cert Hash\\(sha1\\)\"",
+	}
 
-	o, err := exec.Command("powershell", certUtilArgs...).CombinedOutput()
+	cmd := exec.Command("powershell", certUtilArgs...)
+	logrus.Debugf("Crafted Command: %s", cmd.String())
+
+	o, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to obtain sha1 thumbPrint of cert in %s: %v", dynamicDir, err)
+		return fmt.Errorf("failed to obtain sha1 thumbPrint of cert in %s (%s): %v", dynamicDir, string(o), err)
 	}
 
-	thumb := strings.Split(string(o), " ")
-	if len(thumb) != 2 {
-		return fmt.Errorf("encountered error determining thumbprint of %s, certutil did not return properly formatted hash: %s", file.hostFile, string(o))
+	// cert util will return a sha1 field in the following format
+	// Cert Hash(sha1): <someHash>
+	tmp := string(o)
+	tmp = strings.ReplaceAll(tmp, "\n", "")
+	tmp = strings.ReplaceAll(tmp, "\r", "")
+	thumb := strings.Split(tmp, " ")
+	if len(thumb) != 3 {
+		return fmt.Errorf("encountered error determining thumbprint of %s, certutil did not return properly formatted hash: %s %s", file.hostFile, string(o), thumb)
 	}
-	thumbPrint := thumb[1]
+	thumbPrint := thumb[2]
 
-	// unimport the cert via its thumbprint
+	// check if cert exists in store
 	pwshArgs := []string{"-Command",
-		"Get-ChildItem", fmt.Sprintf("Cert:\\LocalMachine\\Root\\%s", thumbPrint), "|", "Remove-Item"}
+		"Test-Path", fmt.Sprintf("Cert:\\LocalMachine\\Root\\%s", thumbPrint)}
 
-	_, err = exec.Command("powershell", pwshArgs...).CombinedOutput()
+	o, err = exec.Command("powershell", pwshArgs...).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to remove certificate %s: %v", file.hostFile, err)
+		return fmt.Errorf("error encountered testing certificate path %s (output: %s): %v", fmt.Sprintf("Cert:\\LocalMachine\\Root\\%s", thumbPrint), string(o), err)
+	}
+	logrus.Debugf("Crafted Command: %s", cmd.String())
+
+	if string(o) == "False" {
+		// cert does not exist in store, nothing to remove
+		return nil
 	}
 
-	logrus.Infof("successfully removed %s", file.hostFile)
+	pwshArgs = []string{"-Command",
+		"Get-ChildItem", fmt.Sprintf("Cert:\\LocalMachine\\Root\\%s", thumbPrint), "|", "Remove-Item"}
+	cmd = exec.Command("powershell", pwshArgs...)
+	logrus.Debugf("Crafted Command: %s", cmd.String())
 
+	o, err = cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to remove certificate %s (%s): %v", file.hostFile, string(o), err)
+	}
+
+	logrus.Infof("Successfully removed %s", file.hostFile)
 	return nil
 }
 
