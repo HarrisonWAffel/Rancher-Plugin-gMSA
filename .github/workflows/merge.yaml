@@ -1,4 +1,4 @@
-name: MergeToMain-CI
+name: Merge To Main CI
 
 on:
   push:
