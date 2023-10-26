@@ -23,6 +23,10 @@ if [ -z "$OS" ] || [ "$OS" = "Windows_NT" ]; then
 fi
 
 SUFFIX="-${ARCH}"
+if [[ -z "${GITHUB_STAGE}" || -z "${GITHUB_PR}" ]]; then
+    TAG=${TAG:-${VERSION}${SUFFIX}}
+  else
+    TAG="${COMMIT}"-PR-"${GITHUB_PR}"-staged
+fi
 
-TAG=${TAG:-${VERSION}${SUFFIX}}
 REPO=${REPO:-rancher}
