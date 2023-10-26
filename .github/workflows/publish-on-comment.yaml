@@ -1,9 +1,7 @@
-name: PR Publish Comment
+name: PR Comments
 on:
-  # Trigger the workflow on push or pull request
-  pull_request:
-    branches:
-      - master
+  issue_comment:
+    types: [created]
 
 permissions:
   pull-requests: write
@@ -12,24 +10,42 @@ jobs:
   stage-for-testing:
     # This job only runs for pull request comments
     # which contain only 'stage-for-testing'
-    name: PR comment
-    if: |
-      github.event.issue.pull_request && github.event.comment.body == '/stage-for-testing'
+    name: Stage PR ${{ github.event.issue.number }} For Testing
+    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/stage-for-testing'}}
     runs-on: windows-2022
+    env:
+      REPO: ${{ vars.REPO }}
+      GITHUB_STAGE: true
+      GITHUB_PR: ${{ github.event.issue.number }}
     steps:
-      - run: |
-          echo A comment on PR $NUMBER
+      - name: Check if user has write access
+        uses: lannonbr/repo-permission-check-action@2.0.0
+        with:
+          permission: "write"
         env:
-          NUMBER: ${{ github.event.issue.number }}
-      - uses: actions/github-script@v6
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Because this action is triggered based off of a comment on a PR,
+      # properties of the PR itself are not within the context.
+      # We can use the GH API to get specific details for the PR
+      # this comment was left on.
+      - name: Block Rancher Publish
+        if: ${{ env.REPO == 'rancher' }}
+        run: exit 1
+      - name: Get latest commit for PR
+        id: get-sha
+        uses: actions/github-script@v6
         with:
+          result-encoding: string
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            var pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Starting to stage this PR for testing'
+              pull_number: ${{ github.event.issue.number }}
             })
+            return pr.data.head.sha
+      - uses: actions/checkout@v1
+        with:
+          ref: ${{ steps.get-sha.outputs.result }}
       - uses: actions/github-script@v6
         with:
           script: |
@@ -37,6 +53,46 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'PR Has been staged for testing'
+              body: 'Starting to stage all PR changes up to commit ${{ steps.get-sha.outputs.result }} for testing'
+            })
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: build-binaries
+        run: bash ./scripts/build
+      - name: package-binaries
+        run: bash ./scripts/package
+      - name: publish-containers
+        run: bash ./scripts/publish
+      - uses: actions/github-script@v6
+        with:
+          # The body of this message is unfortunately unable to
+          # get the value of the TAG env var, as it is determined
+          # from within the 'version' script, which it executed
+          # outside the scope of this step
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Changes from commit ${{ steps.get-sha.outputs.result }} have been staged in dockerhub. \n\nNew tags have been pushed to the following images within the `${{ env.REPO }}` dockerhub repository\n\n `${{ env.REPO }}/gmsa-account-provider` \n`${{ env.REPO }}/ccg-plugin-installer`'
             })
 
+  report-job-success:
+    name: Report error if job failed
+    runs-on: ubuntu-latest
+    needs: [stage-for-testing]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    steps:
+      - name: report stage result
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'An error was encountered staging this PR for testing.\n\nWorkflow details can be found here\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+            })
