@@ -1,13 +1,9 @@
-name: PullRequest-CI
+name: MergeToMain-CI
 
 on:
-  pull_request:
-    paths-ignore:
-      - '*.dapper'
-      - '.gitignore'
-      - 'CODEOWNERS'
-      - 'LICENSE'
-      - 'Makefile'
+  push:
+    branches:
+      - main
 
 jobs:
   go-validation:
@@ -62,14 +58,21 @@ jobs:
       - name: Build All Binaries
         run: bash ./scripts/build
 
-  build-windows-containers:
-    needs: [linux-tests, windows-tests, chart-tests]
+  publish-windows-containers:
+    needs: [build-all-binaries]
     runs-on: windows-2022
     env:
       REPO: ${{ vars.REPO }}
     steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       - uses: actions/checkout@v1
       - name: build-binaries
         run: bash ./scripts/build
-      - name: build-containers
+      - name: package-binaries
         run: bash ./scripts/package
+      - name: publish-containers
+        run: bash ./scripts/publish
