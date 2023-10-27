@@ -24,7 +24,7 @@ func (h *HTTPServer) StartServer(errChan chan error, namespace string, disableMT
 	if err != nil {
 		return "", fmt.Errorf("failed to create http listener for http server: %v", err)
 	}
-
+	logrus.Info("test")
 	go func() {
 		s := http.Server{
 			Handler: h.Engine,
@@ -71,7 +71,7 @@ func (h *HTTPServer) handle(c *gin.Context) {
 		logrus.Info("Received request with no object")
 		return
 	}
-
+	logrus.Info("The API was called")
 	s, err := h.Credentials.Secrets.Get(secret, metav1.GetOptions{})
 	// Handle forbidden requests in the same manner as 404's so no feedback is given to the caller
 	if errors.IsForbidden(err) || errors.IsNotFound(err) {
