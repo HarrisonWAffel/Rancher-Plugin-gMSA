@@ -20,6 +20,8 @@ jobs:
           version: v1.54
       - name: go-format
         run: test -z "$(go fmt ./... | tee /dev/stderr)"
+      - name: Validate CI
+        run: bash ./scripts/validate-ci
 
   charts-validation:
     runs-on: ubuntu-latest
@@ -27,6 +29,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: validate-charts
         run: ./scripts/validate-charts
+      - name: Validate CI
+        run: bash ./scripts/validate-ci
 
   linux-tests:
     needs: [go-validation, charts-validation]
@@ -35,6 +39,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: test-go
         run: ./scripts/test
+      - name: Validate CI
+        run: ./scripts/validate-ci
 
   windows-tests:
     needs: [go-validation, charts-validation]
@@ -43,6 +49,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: test-go
         run: bash ./scripts/test
+      - name: Validate CI
+        run: bash ./scripts/validate-ci
 
   chart-tests:
     needs: [go-validation, charts-validation]
@@ -51,6 +59,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: test-charts
         run: ./scripts/test-charts
+      - name: Validate CI
+        run: ./scripts/validate-ci
 
   build-all-binaries:
     needs: [linux-tests, windows-tests, chart-tests]
