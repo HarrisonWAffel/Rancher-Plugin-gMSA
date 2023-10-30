@@ -37,6 +37,7 @@ func CLSIDExists(registryKey string) (bool, error) {
 	return true, nil
 }
 
+// test
 func verifyInstall() (bool, bool, bool, bool, error) {
 	// 1. Check that the DLL directory exists C:\Program Files\RanchergMSACredentialProvider
 	_, err := os.Stat(fmt.Sprintf(baseDir))
