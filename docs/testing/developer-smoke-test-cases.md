@@ -159,8 +159,8 @@ spec:
           - <ACTIVE_DIRECTORY_DOMAIN_CONTROLLER_IP>
         searches:
           - <YOUR_ACTIVE_DIRECTORY_DOMAIN_NAME>
-      serviceAccount: rancher-windows-gmsa
-      serviceAccountName: rancher-windows-gmsa
+      serviceAccount: rancher-gmsa-webhook
+      serviceAccountName: rancher-gmsa-webhook
       securityContext:
         windowsOptions:
           gmsaCredentialSpecName: <YOUR_GMSACREDSPEC_NAME>

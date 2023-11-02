@@ -1,5 +1,5 @@
 annotations:
-  catalog.cattle.io/auto-install: rancher-windows-gmsa-crd=match
+  catalog.cattle.io/auto-install: rancher-gmsa-webhook-crd=match
   catalog.cattle.io/certified: rancher
   catalog.cattle.io/display-name: Windows gMSA
   catalog.cattle.io/experimental: "true"
@@ -9,7 +9,7 @@ annotations:
   catalog.cattle.io/permits-os: windows
   catalog.cattle.io/provides-gvr: windows.k8s.io.gmsacredentialspecs/v1
   catalog.cattle.io/rancher-version: '>= 2.7.0-0'
-  catalog.cattle.io/release-name: rancher-windows-gmsa
+  catalog.cattle.io/release-name: rancher-gmsa-webhook
 apiVersion: v2
 appVersion: 0.7.0
 description: Windows gMSA Configuration
