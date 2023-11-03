@@ -51,6 +51,8 @@ jobs:
   build-all-binaries:
     needs: [linux-tests, windows-tests, chart-tests]
     runs-on: windows-2022
+    if: |
+      github.repository_owner == "rancher" || vars.REPO != ""
     env:
       REPO: ${{ vars.REPO }}
     steps:
