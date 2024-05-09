@@ -52,6 +52,7 @@ jobs:
     needs: [linux-tests, windows-tests, chart-tests]
     runs-on: windows-2022
     env:
+      REPO: ${{ vars.REPO }}
       CROSS: true
       TAG: ${{ github.ref_name }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
