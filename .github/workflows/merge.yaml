@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@a4f60bb28d35aeee14e6880718e0c85ff1882e64
         with:
           version: v1.55
       - name: go-format
@@ -50,6 +50,7 @@ jobs:
 
   build-all-binaries:
     needs: [linux-tests, windows-tests, chart-tests]
+    # Windows 2022 can build 2019 images without buildx, so we only need one step
     runs-on: windows-2022
     permissions:
       contents: read

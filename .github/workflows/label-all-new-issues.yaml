@@ -2,17 +2,17 @@ name: Label issues
 on:
   issues:
     types:
-      - opened
       - reopened
+      - opened
 jobs:
   label_issues:
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
-      - name: Label issues
-        run: gh issue edit "$NUMBER" --add-label "$LABELS"
-        with:
-          LABELS: "team/area2"
+      - run: gh issue edit "$NUMBER" --add-label "$LABELS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.issue.number }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          LABELS: "team/area2"
