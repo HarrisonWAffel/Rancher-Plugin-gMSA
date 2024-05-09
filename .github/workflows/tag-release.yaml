@@ -54,23 +54,28 @@ jobs:
     env:
       CROSS: true
       TAG: ${{ github.ref_name }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v1
+      - name: retrieve dockerhub credentials
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/dockerhub/credentials username | DOCKER_USERNAME ;
+            secret/data/github/repo/${{ github.repository }}/dockerhub/credentials password | DOCKER_PASSWORD
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
       - name: build-all-binaries
         run: bash ./scripts/build
       - name: package-binaries
         run: bash ./scripts/package
       - name: publish-containers
         run: bash ./scripts/publish
-      - uses: marvinpinto/action-automatic-releases@d68defdd11f9dcc7f52f35c1b7c236ee7513bcc1
-        with:
-          prerelease: false
-          repo_token: ${{ github.token }}
-          files: |
-            ./dist/*
-            LICENSE
+      - name: Create GH Release
+        run: gh release create ${{ github.ref_name }} --latest --verify-tag --generate-notes ./dist/* LICENSE
