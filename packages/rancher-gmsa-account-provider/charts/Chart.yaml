@@ -2,7 +2,7 @@ annotations:
   catalog.cattle.io/certified: rancher
   catalog.cattle.io/display-name: Rancher gMSA Account Provider
   catalog.cattle.io/experimental: "true"
-  catalog.cattle.io/kube-version: '>=1.24.0-0'
+  catalog.cattle.io/kube-version: '>=1.28.0-0'
   catalog.cattle.io/os: windows
   catalog.cattle.io/permits-os: linux,windows
   catalog.cattle.io/release-name: rancher-gmsa-account-provider
@@ -18,8 +18,6 @@ keywords:
 maintainers:
 - email: harrison.affel@gmail.com
   name: Harrison
-- email: arvindiyengar@suse.com
-  name: Arvind
 name: rancher-gmsa-account-provider
 type: application
-version: 0.2.0
+version: 0.3.0-rc.1
