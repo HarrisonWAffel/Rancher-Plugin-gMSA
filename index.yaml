@@ -194,6 +194,41 @@ entries:
       catalog.cattle.io/release-name: rancher-gmsa-webhook
     apiVersion: v2
     appVersion: 0.7.0
+    created: "2025-04-16T15:26:15.162582-04:00"
+    description: Windows gMSA Configuration
+    digest: 6105f706afb305e1296cd065252b2e577546f9d1d95b856a1b685e8a5cf76b27
+    icon: https://charts.rancher.io/assets/logos/windows-gmsa.svg
+    keywords:
+    - Windows
+    - Windows GMSA
+    - GMSA
+    - Active Directory
+    maintainers:
+    - email: harrison.affel@suse.com
+      name: Harrison Affel
+    - email: arvind.iyengar@suse.com
+      name: Arvind Iyengar
+    name: rancher-gmsa-webhook
+    sources:
+    - https://github.com/kubernetes-sigs/windows-gmsa
+    type: application
+    urls:
+    - assets/rancher-gmsa-webhook/rancher-gmsa-webhook-0.13.0.tgz
+    version: 0.13.0
+  - annotations:
+      catalog.cattle.io/auto-install: rancher-gmsa-webhook-crd=match
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/display-name: Windows gMSA
+      catalog.cattle.io/experimental: "true"
+      catalog.cattle.io/kube-version: '>= 1.21.0-0'
+      catalog.cattle.io/namespace: cattle-windows-gmsa-system
+      catalog.cattle.io/os: windows
+      catalog.cattle.io/permits-os: windows
+      catalog.cattle.io/provides-gvr: windows.k8s.io.gmsacredentialspecs/v1
+      catalog.cattle.io/rancher-version: '>= 2.7.0-0'
+      catalog.cattle.io/release-name: rancher-gmsa-webhook
+    apiVersion: v2
+    appVersion: 0.7.0
     created: "2024-02-08T09:16:51.1421-08:00"
     description: Windows gMSA Configuration
     digest: e84777104f0c757647e5cbacb64b586178622f216fd841030746f14dcc6fe79a
@@ -251,6 +286,20 @@ entries:
     - assets/rancher-gmsa-webhook/rancher-gmsa-webhook-0.1.0.tgz
     version: 0.1.0
   rancher-gmsa-webhook-crd:
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/hidden: "true"
+      catalog.cattle.io/namespace: cattle-windows-gmsa-system
+      catalog.cattle.io/release-name: rancher-gmsa-webhook-crd
+    apiVersion: v1
+    created: "2025-04-16T15:26:15.16352-04:00"
+    description: Installs the CRDs for Windows GMSA.
+    digest: d09c6c955db0e87116a6fdc5fef24d85ffeba94a557c096b0338fdb6f9c6a389
+    name: rancher-gmsa-webhook-crd
+    type: application
+    urls:
+    - assets/rancher-gmsa-webhook-crd/rancher-gmsa-webhook-crd-0.13.0.tgz
+    version: 0.13.0
   - annotations:
       catalog.cattle.io/certified: rancher
       catalog.cattle.io/hidden: "true"
