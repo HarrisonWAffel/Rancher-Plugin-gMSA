@@ -1,6 +1,6 @@
 --- charts-original/templates/deployment.yaml
 +++ charts/templates/deployment.yaml
-@@ -44,13 +44,13 @@
+@@ -44,36 +44,28 @@
              - containerPort: {{ .Values.containerPort }}
            volumeMounts:
              - name: tls
@@ -16,8 +16,20 @@
 +              value: /etc/ssl/{{ .Chart.Name }}/tls.crt
              - name: HTTPS_PORT
                value: "{{ .Values.containerPort }}"
+-            - name: BURST
+-              value: "{{ .Values.burst }}"
+-            - name: QPS
+-              value: "{{ .Values.qps }}"
+-            - name: RANDOM_HOSTNAME
+-              value: "{{ .Values.randomHostname }}"
            {{- if .Values.securityContext }}
-@@ -62,10 +62,10 @@
+           securityContext: {{ toYaml .Values.securityContext | nindent 12 }}
+           {{- end }}
+-          args:
+-            - --cert-reload={{ .Values.certificates.certReload.enabled }}
+       volumes:
+         - name: tls
+           secret:
              secretName: {{ .Values.certificates.secretName }}
              items:
                - key: tls.key

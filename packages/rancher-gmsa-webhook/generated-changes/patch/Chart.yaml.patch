@@ -14,8 +14,9 @@
 +  catalog.cattle.io/rancher-version: '>= 2.7.0-0'
 +  catalog.cattle.io/release-name: rancher-gmsa-webhook
  apiVersion: v2
- appVersion: 0.7.0
+-appVersion: 0.12.1
 -description: Windows GMSA Configuration
++appVersion: 0.7.0
 +description: Windows gMSA Configuration
 +icon: https://charts.rancher.io/assets/logos/windows-gmsa.svg
  keywords:
@@ -33,5 +34,5 @@
  sources:
  - https://github.com/kubernetes-sigs/windows-gmsa
  type: application
--version: 0.7.2
+-version: 0.12.1
 +version: 0.1.0
