@@ -4,7 +4,7 @@ global:
 
   kubectl:
     repository: rancher/kubectl
-    tag: v1.24.17
+    tag: v1.29.15
     pullPolicy: IfNotPresent
 
   imagePullSecrets: []
