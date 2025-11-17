@@ -3,8 +3,8 @@ global:
     systemDefaultRegistry: ""
 
   kubectl:
-    repository: rancher/kubectl
-    tag: v1.24.17
+    repository: rancher/kuberlr-kubectl
+    tag: v6.0.0
     pullPolicy: IfNotPresent
 
   imagePullSecrets: []

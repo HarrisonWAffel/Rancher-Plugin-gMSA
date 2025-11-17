@@ -118,6 +118,8 @@ github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0leargg
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
 github.com/rancher/lasso v0.2.3 h1:74/z/C/O3ykhyMrRuEgc9kVyYiSoS7kp5BAijlcyXDg=
 github.com/rancher/lasso v0.2.3/go.mod h1:G+KeeOaKRjp+qGp0bV6VbLhYrq1vHbJPbDh40ejg5yE=
+github.com/rancher/permissions v0.0.0-20250606154942-3af3aef9b8ac h1:t7JjUm9NlBeJVoylNkWCqghWZMs3Nt7vvs4tKTQDKB0=
+github.com/rancher/permissions v0.0.0-20250606154942-3af3aef9b8ac/go.mod h1:PDAb+l6/i6cbSokQ2CuNCgGOT/BHQY2WgZATwPXEyU4=
 github.com/rancher/wrangler/v3 v3.2.4 h1:pgpLwsmgQvTSSknxddJDq+ObIiOXFggCWdDyB0z7YcA=
 github.com/rancher/wrangler/v3 v3.2.4/go.mod h1:TA1QuuQxrtn/kmJbBLW/l24IcfHBmSXBa9an3IRlqQQ=
 github.com/rogpeppe/go-internal v1.13.1 h1:KvO1DLK/DRN07sQ1LQKScxyZJuNnedQ5/wKSR38lUII=

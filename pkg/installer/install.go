@@ -34,6 +34,11 @@ func Install() (err error) {
 		}
 	}
 
+	logrus.Debugf("Ensuring plugin directory has limited permissions")
+	if err := utils.SetPermissions(); err != nil {
+		return fmt.Errorf("failed to restrict access to DLL directory: %v", err)
+	}
+
 	if installationStatus.RequiresUpgrade() {
 		// Some useful docs regarding upgrades
 		//  https://serverfault.com/questions/503721/replacing-dll-files-while-the-application-is-running

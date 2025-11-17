@@ -8,7 +8,11 @@ import (
 	"time"
 
 	butil "github.com/go-git/go-billy/v5/util"
+	"github.com/rancher/permissions/pkg/access"
+	"github.com/rancher/permissions/pkg/acl"
+	"github.com/rancher/permissions/pkg/sid"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/windows"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -235,4 +239,16 @@ func RenameTempFile(file string) (func() error, func() error, error) {
 		}
 	}
 	return undoFunc, deleteFunc, renameFunc(file, tempFile)
+}
+
+func SetPermissions() error {
+	// need to check that only admins and the local system can get at this
+	// directory
+	if err := acl.Apply(DLLDirectory, nil, nil, []windows.EXPLICIT_ACCESS{
+		access.GrantSid(windows.GENERIC_ALL, sid.LocalSystem()),
+		access.GrantSid(windows.GENERIC_ALL, sid.BuiltinAdministrators()),
+	}...); err != nil {
+		return fmt.Errorf("failed to configure Access Control List For %s: %v", DLLDirectory, err)
+	}
+	return nil
 }

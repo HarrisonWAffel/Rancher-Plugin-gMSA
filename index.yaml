@@ -99,6 +99,36 @@ entries:
       catalog.cattle.io/permits-os: linux,windows
       catalog.cattle.io/release-name: rancher-gmsa-plugin-installer
     apiVersion: v2
+    created: "2025-11-17T16:57:30.882096-05:00"
+    description: The Rancher gMSA CCG Plugin assists Windows Container Credential
+      Guard during the non-domain-joined gMSA authorization process
+    digest: 22cbf9d5a02d3a7d3255665b5c8f94d3d3f1d3b780f249999d297f3f0abeab99
+    icon: https://charts.rancher.io/assets/logos/windows-gmsa.svg
+    keywords:
+    - Windows
+    - Windows GMSA
+    - GMSA
+    - Active Directory
+    maintainers:
+    - email: harrison.affel@gmail.com
+      name: Harrison
+    - email: arvindiyengar@suse.com
+      name: Arvind
+    name: rancher-gmsa-plugin-installer
+    type: application
+    urls:
+    - assets/rancher-gmsa-plugin-installer/rancher-gmsa-plugin-installer-0.2.1.tgz
+    version: 0.2.1
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/display-name: Rancher gMSA CCG Plugin
+      catalog.cattle.io/experimental: "true"
+      catalog.cattle.io/kube-version: '>=1.24.0'
+      catalog.cattle.io/namespace: cattle-windows-gmsa-system
+      catalog.cattle.io/os: windows
+      catalog.cattle.io/permits-os: linux,windows
+      catalog.cattle.io/release-name: rancher-gmsa-plugin-installer
+    apiVersion: v2
     created: "2024-02-08T09:16:51.080863-08:00"
     description: The Rancher gMSA CCG Plugin assists Windows Container Credential
       Guard during the non-domain-joined gMSA authorization process
