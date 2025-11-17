@@ -6,11 +6,7 @@ The creation and management of test environments can be automated through the us
 
 # Supported Versions of RKE2
 
-+ `v1.24.14` and up  
-+ `v1.25.10` and up  
-+ `v1.26.5` and up
-+ `v1.27.2` and up
-+ All RKE2 versions `v1.28.0` and up
+This solution requires that the cluster support Windows Host Process Pods. This feature has been supported since RKE2 v1.24.14, and as a result all currently supported RKE2 versions can deploy this solution.
 
 # Prerequisites 
 
@@ -27,6 +23,15 @@ Regardless of cluster configurations, the following prerequisites must be met:
     + As a reference, the Rancher gMSA Plugin DLL expects a `PluginInput` format of `<ACCOUNT_PROVIDER_NAMESPACE>:<SECRET>`, where `ACCOUNT_PROVIDER_NAMESPACE` is a namespace containing an Account Provider deployment. 
   + Ensure that the GMSACredentialSpec object specifies the GUID and SID of the _domain_ and **not** the GMSA account. 
   + Ensure that a `ClusterRole` or `Role` that provides the `use` verb on the `GMSACredentialSpec` resource has been created.
+
+> *Tip*
+> 
+> This solution requires that three individual charts are installed. While these charts can technically be installed in any order, some charts (such as the gMSA Webhook) rely on resources created within the namespace of other charts (i.e. the account provider). To make installation as easy as possible, charts should be installed in the following order
+> 
+> 1. Account Provider
+> 2. gMSA Webhook
+> 3. CCG Plugin Installer
+
 
 # Test Cluster configuration 
 
@@ -54,14 +59,22 @@ We currently do **not** provide support for or test against the following enviro
 
 ## Configure RBAC for your service account
 
-In order to test the Account Provider you must first install the GMSA Web-hook, which will provide the `GMSACredentialSpec` CRD and will expand the contents of the resource onto pods. The web-hook chart will deploy a purpose built `ClusterRole` which permits access to all `GMSACredentialSpec` resources. However, the default `ClusterRoleBinding` deployed by the GMSA Web-hook chart only grants access to these resources to the service account used by the GMSA web-hook. In order to create workloads which utilize a `GMSACredentialSpec`, but run under a different service account, an additional `Role` and `RoleBinding` needs to be created for the service account you intend to use for testing.
+In order to test this solution you must first install the GMSA Web-hook, which will provide the `GMSACredentialSpec` CRD and will expand the contents of the resource onto pods. The web-hook chart will deploy a purpose built `ClusterRole` which permits access to all `GMSACredentialSpec` resources. However, the default `ClusterRoleBinding` deployed by the GMSA Web-hook chart only grants access to these resources to the service account used by the GMSA web-hook. In order to create workloads which utilize a `GMSACredentialSpec`, but run under a different service account, an additional `Role` and `RoleBinding` needs to be created for the service account you intend to use for testing.
 
 ```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    kubernetes.io/enforce-mountable-secrets: "true"
+  name: gmsa-sa
+  namespace: default
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: get-gmsa-spec
-  namespace: cattle-wins-system
+  namespace: default
 rules:
   - apiGroups:
       - windows.k8s.io
@@ -74,19 +87,19 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: get-gmsa-spec-rb
-  namespace: cattle-wins-system
+  namespace: default
 roleRef:
-  apiGroup: rbac.authorization.k8s.io/v1
+  apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: get-gmsa-spec
 subjects:
   - kind: ServiceAccount
-    name: <YOUR_SERVICE_ACCOUNT_NAME>
+    name: gmsa-sa
 ```
 
 ## Sample gMSA Workload
 
-Each test may utilize the same gMSA workload to verify the proper function of the feature. A sample workload looks like the following: 
+Each test may utilize the same gMSA workload to verify that the feature works as expected. A sample workload looks like the following: 
 
 <details hidden>
 
@@ -95,9 +108,6 @@ Sample gMSA Workload
 </summary>
 
 The below yaml can be used to deploy a workload utilizing a gMSA account. Several fields must be modified in accordance with your Active Directory environment. The workload uses a `windows/servercore` base image, to leverage the Active Directory authentication apis. 
-
-> *Note*
-> The service created by this workload will not be accessible via the Rancher UI, you must directly connect to the NodeIP in your browser. For most test scenarios, using the UI is not required to determine if the pod has successfully assumed the role of a gMSA account. 
 
 The `servercore` base image is ~4GB (!). Expect a lengthy image pull time the first time you deploy this workload; grab a drink, relax.
 
@@ -109,7 +119,7 @@ metadata:
   labels:
     app: gmsa-demo
   name: gmsa-demo
-  namespace: cattle-wins-system
+  namespace: default
 data:
   run.ps1: |
     $ErrorActionPreference = "Stop"
@@ -141,10 +151,10 @@ metadata:
   labels:
     app: gmsa-demo
   name: gmsa-demo
-  namespace: cattle-wins-system
+  namespace: default
 spec:
   replicas: 1
-  selector:
+  selector: 
     matchLabels:
       app: gmsa-demo
   template:
@@ -152,14 +162,14 @@ spec:
       labels:
         app: gmsa-demo
     spec:
-      serviceAccountName: gmsa
+      serviceAccountName: gmsa-sa
       containers:
         - name: iis
-          image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+          image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2022
           imagePullPolicy: IfNotPresent
           securityContext:
             windowsOptions:
-              gmsaCredentialSpecName: gmsa1-ccg
+              gmsaCredentialSpecName: gmsa1
           ports:
             - containerPort: 80
           command:
@@ -183,8 +193,8 @@ kind: Service
 metadata:
   labels:
     app: gmsa-demo
-  name: gmsa-demo
-  namespace: cattle-wins-system
+  name: gmsa-simple-demo
+  namespace: default
 spec:
   ports:
     - port: 80
@@ -207,16 +217,20 @@ The following procedure should be performed against all supported environments a
     1. Ensure a pod is deployed onto each Windows worker
     2. Ensure that all pods become available, and that all init containers exit successfully
 2. SSH / RDP into each Windows host, and ensure that the files listed in the `Expected Files For The Plugin Installer Post Install` section exist
+   1. You can use `docs/testing/scripts/verify-host-installation.ps1` to easy confirm this 
 3. Install the Rancher gMSA Account Provider chart onto the cluster
     1. Ensure a pod is deployed to all applicable windows workers
     2. Ensure that all pods become available, and there are no errors shown in the logs
 4. SSH / RDP into each host, and ensure the files listed in the `Expected Files For The Account Provider Post Install` section exist
+   1. You can use `docs/testing/scripts/verify-host-installation.ps1` to easy confirm this
 5. Create a Windows workload which leverages your gMSA account (see above sample workload for an example)
     1. Ensure the workload becomes available, and that the CCG event log does not log any errors 
 6. SSH into the sample workload and run the following commands
-   1. `nltest /parentdomain` should return the domain name configured within the GMSACredentialSpec 
-   2. `nltest /query` should return `NERR_Success`, indicating no error was encountered contacting the domain controller
-   3. `nltest /sc_query:<YOUR_DOMAIN_NAME>` should return `NERR_Success`, indicating no error was encountered contacting the domain controller
+   1. `wget https://raw.githubusercontent.com/rancher/Rancher-Plugin-gMSA/refs/heads/main/docs/testing/scripts/verify-ad-connection.ps1 -UseBasicParsing -OutFile gmsa.ps1; ./gmsa.ps1 -ADParent <YOUR_AD_DOMAIN>`
+   2. Alternatively, you can manually run these commands
+       1. `nltest /parentdomain` should return the domain name configured within the GMSACredentialSpec 
+       2. `nltest /query` should return `NERR_Success`, indicating no error was encountered contacting the domain controller
+       3. `nltest /sc_query:<YOUR_DOMAIN_NAME>` should return `NERR_Success`, indicating no error was encountered contacting the domain controller
 7. Connect to the service over the newly created node port, and login using an active directory user when prompted. This user should be different from the GMSA impersonation account username and password.
 8. Delete the sample Workload
 9. Uninstall the Rancher gMSA Account Provider Chart
